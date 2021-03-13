@@ -34,6 +34,11 @@ def generate_payload(length=10):
 # Send using Stop_n_wait protocol
 def send_snw(sock):
 	# Fill out the code here
+
+    #open and read the file
+    rBuf = open('10MB.txt', 'r')
+    rBuf = rBuf.read()
+
     seq = 0
     while(seq < 20):
         data = generate_payload(40).encode()
