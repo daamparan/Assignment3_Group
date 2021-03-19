@@ -43,6 +43,7 @@ def send_snw(sock, filename):
     rBuf = rBuf.read()
     seq = 0
     global total_Num
+    global done
     while rBuf: #still data in the buff
 
         data = (rBuf[:PACKET_SIZE]).encode()#payload
@@ -59,8 +60,8 @@ def send_snw(sock, filename):
         	continue
 
         #continuation
+        #done = False
         seq = seq+1
-
         total_Num = total_Num + 1
         time.sleep(TIMEOUT_INTERVAL)
     pkt = packet.make(seq, "END".encode())

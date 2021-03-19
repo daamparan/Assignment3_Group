@@ -8,8 +8,23 @@ RECEIVER_ADDR = ('localhost', 8080)
 
 # Receive packets from the sender w/ GBN protocol
 def receive_gbn(sock):
-    # Fill here
-  return
+  nxtSeq = 0 #will define the next expected sequence
+  endStr = ''
+  file = open('receiver_bio.txt', 'w')
+
+  while endStr != 'END':
+    pkt, senderaddr - udt.recv(sock) #receive the packet
+    seq, data = packet.extract(pkt) #extract the contents
+    data = data.decode()
+
+    if nxtSeq == seq: #it is the correct pkt
+      pkt = packet.make(nxtSeq, b'')
+      file.write(data)
+      nxtSeq += 1
+
+    else: #if it is not the expected sequence number
+      pkt = packet.make((nxtSeq - 1), b'')
+
 
 
 # Receive packets from the sender w/ SR protocol
@@ -22,7 +37,7 @@ def receive_sr(sock, windowsize):
 def receive_snw(sock):
   endStr = ''
   inOrder = 0
-  file = open('receiver_file_x.txt', 'w')
+  file = open('receiver_file_16.txt', 'w')
 
   while endStr!='END':
     pkt, senderaddr = udt.recv(sock)
