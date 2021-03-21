@@ -18,7 +18,7 @@ WINDOW_SIZE = 4
 
 # You can use some shared resources over the two threads
 base = 0
-#mutex = _thread.allocate_lock()
+mutex = _thread.allocate_lock()
 timer = Timer(TIMEOUT_INTERVAL)
 total_Num = 0
 total_Re = 0
@@ -42,8 +42,10 @@ def send_snw(sock, filename):
     rBuf = open(filename, 'r')
     rBuf = rBuf.read()
     seq = 0
+
     global total_Num
-    global done
+    global total_Re
+
     while rBuf: #still data in the buff
 
         data = (rBuf[:PACKET_SIZE]).encode()#payload
@@ -81,7 +83,24 @@ def send_snw(sock, filename):
     '''
 
 # Send using GBN protocol
-def send_gbn(sock):
+def send_gbn(sock, filename):
+    #open and read the file
+    rBuf = open(filename, 'r')
+    rBuf = rBuf.read()
+    
+    seq = 0
+    packets = [] #first collect the packets
+    while 1:
+        data = file.read(PACKET_SIZE)
+        if not data: #if no data exists
+            break
+        packets.append(packet.make(seq, data)) #add to the packets
+        seq = seq + 1
+
+    
+
+
+
 
     return
 
