@@ -7,3 +7,7 @@ In two seperate windows run Receiver.py followed by Sender.py. Specify what file
 Due to the probability of losing the packets the program can randomly stop and get stuck in an infinite loop due to the global done var, we belive that to
 be the cause of the issue. Furthermore, we did not use two threads to implement the solution, rather it only used 1. Also, locking for threads was not applied 
 either as neither of us seemed to be using it correctly. 
+
+
+# GBN 
+For the GBN the same rules apply, simply run the sender and receiver in two different shells and input the file you would like to transfer. 
