@@ -84,6 +84,10 @@ def send_snw(sock, filename):
 
 # Send using GBN protocol
 def send_gbn(sock, filename):
+    global mutex
+    global total_Num
+    global base
+
     #open and read the file
     rBuf = open(filename, 'r')
     rBuf = rBuf.read()
@@ -97,7 +101,32 @@ def send_gbn(sock, filename):
         packets.append(packet.make(seq, data)) #add to the packets
         seq = seq + 1
 
-    
+    nextSend = 0 #next seq to be sent
+    base = 0 #base packet
+
+    _thread.start_new_thread(receive, (sock)) #start the receiving thread
+
+    while base < len(packets): #whi;e there is still more packets
+        mutex.acquire() #lock the previous thread
+        while nextSend < (base + WINDOW_SIZE): #while we are within the window
+            udt.send(packets[nextSend], sock, RECEIVER_ADDR) #send the packet at position 1
+            nextSend = nextSend + 1
+            total_Num = total_Num + 1
+        if not timer.running(): #check whether the timer is running 
+            timer.start()
+
+        while timer.running() and not timer.timeout(): #if we are still running and not timed out
+            mutex.release() #release the lock
+            time.sleep(SLEEP_INTERVAL) #sleep for x time
+            mutex.acquire() #attain the lock once again 
+
+        if timer.timeout():
+            timer.stop()
+            nextSend = base #attain the last packet sent to send it again
+            total_Re = total_Re + 1
+            total_Num = total_Num + 1
+        mutex.release() #release the thread
+
 
 
 
@@ -135,7 +164,24 @@ def receive_snw(sock, pkt):
 
 # Receive thread for GBN
 def receive_gbn(sock):
-    # Fill here to handle acks
+    global mutex
+    global base
+    global timer
+    global total_Re
+    global total_Num
+
+    while True: #continously receive packets
+        pkt, senderAddr = udt.recv(sock)
+        ack, data = packet.extract(pkt)
+        if (ack >= base):
+            mutex.acquire()
+            base = ack + 1 #this is the nest seq that comes after ti
+            timer.stop()
+            mutex.release()
+
+
+
+
     return
 
 
@@ -151,7 +197,7 @@ if __name__ == '__main__':
     filename = input('Enter the filename: ')
     t = time.time()
     #_thread.start_new_thread(send_snw, (sock, filename))
-    send_snw(sock, filename)
+    send_gbn(sock, filename)
     print('Time Taken: ', time.time() - t)
     print('Total Packets sent', total_Num)
     print('Total Re-Sent Packets', total_Num)

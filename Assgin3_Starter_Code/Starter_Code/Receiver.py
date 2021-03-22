@@ -13,7 +13,7 @@ def receive_gbn(sock):
   file = open('receiver_bio.txt', 'w')
 
   while endStr != 'END':
-    pkt, senderaddr - udt.recv(sock) #receive the packet
+    pkt, senderaddr = udt.recv(sock) #receive the packet
     seq, data = packet.extract(pkt) #extract the contents
     data = data.decode()
 
@@ -62,7 +62,7 @@ if __name__ == '__main__':
   sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
   sock.bind(RECEIVER_ADDR)
     # filename = sys.argv[1]
-  receive_snw(sock)
+  receive_gbn(sock)
 
     # Close the socket
   sock.close()
