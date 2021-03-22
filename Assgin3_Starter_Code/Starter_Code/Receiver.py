@@ -25,6 +25,8 @@ def receive_gbn(sock):
     else: #if it is not the expected sequence number
       pkt = packet.make((nxtSeq - 1), b'')
 
+    endSrt = data
+    print("From: ", senderaddr, ", Seq# ", seq, endStr)
 
 
 # Receive packets from the sender w/ SR protocol
@@ -63,6 +65,6 @@ if __name__ == '__main__':
   sock.bind(RECEIVER_ADDR)
     # filename = sys.argv[1]
   receive_gbn(sock)
-
+  print('Done Sending')
     # Close the socket
   sock.close()

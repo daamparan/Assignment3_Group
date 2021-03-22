@@ -26,6 +26,9 @@ total_Re = 0
 done = False #used for ack
 
 # Need to have two threads: one for sending and another for receiving ACKs
+def set_window_size(num_packets):
+    global base
+    return min(WINDOW_SIZE, num_packets - base)
 
 # Generate random payload of any length
 def generate_payload(length=10):
@@ -86,51 +89,60 @@ def send_snw(sock, filename):
 def send_gbn(sock, filename):
     global mutex
     global total_Num
+    global total_Re
     global base
+    global done
+    global WINDOW_SIZE
 
     #open and read the file
     file = open(filename, 'r')
-    
     seq = 0
     packets = [] #first collect the packets
+
     while 1:
         data = file.read(PACKET_SIZE)
         if not data: #if no data exists
+            #packets.append(packet.make(seq, 'END'.encode())) #end packet
             break
-        packets.append(packet.make(seq, data)) #add to the packets
+        packets.append(packet.make(seq, data.encode())) #add to the packets
         seq = seq + 1
+
 
     nextSend = 0 #next seq to be sent
     base = 0 #base packet
 
-    _thread.start_new_thread(receive_gbn, (sock)) #start the receiving thread
+    _thread.start_new_thread(receive_gbn, (sock,)) #start the receiving thread
 
-    while base < len(packets): #whi;e there is still more packets
+    while base < len(packets): #while there is still more packets
         mutex.acquire() #lock the previous thread
-        while nextSend < (base + WINDOW_SIZE): #while we are within the window
-            udt.send(packets[nextSend], sock, RECEIVER_ADDR) #send the packet at position 1
-            nextSend = nextSend + 1
-            total_Num = total_Num + 1
+        
+        while nextSend < base + WINDOW_SIZE: #while we are within the window
+            if nextSend <= len(packets):
+                udt.send(packets[nextSend], sock, RECEIVER_ADDR) #send the packet at position 1
+                nextSend = nextSend + 1
+                total_Num = total_Num + 1
+        
         if not timer.running(): #check whether the timer is running 
             timer.start()
 
-        while timer.running() and not timer.timeout(): #if we are still running and not timed out
+        while not timer.timeout(): #if we are still running and not timed out
             mutex.release() #release the lock
             time.sleep(SLEEP_INTERVAL) #sleep for x time
             mutex.acquire() #attain the lock once again 
 
-        if timer.timeout():
+        else:
             timer.stop()
             nextSend = base #attain the last packet sent to send it again
             total_Re = total_Re + 1
-            total_Num = total_Num + 1
+        '''
+        if done: #we acknowledged
+            base = base + 1
+            done = False #rst
+        '''
+        base += 1
+       
         mutex.release() #release the thread
 
-
-
-
-
-    return
 
 # Receive thread for stop-n-wait
 def receive_snw(sock, pkt):
@@ -168,20 +180,17 @@ def receive_gbn(sock):
     global timer
     global total_Re
     global total_Num
-
+    global done
+    
     while True: #continously receive packets
         pkt, senderAddr = udt.recv(sock)
         ack, data = packet.extract(pkt)
         if (ack >= base):
             mutex.acquire()
-            base = ack + 1 #this is the nest seq that comes after ti
+            base = ack + 1 #this is the next seq that comes after it
+            done = True
             timer.stop()
             mutex.release()
-
-
-
-
-    return
 
 
 # Main function
