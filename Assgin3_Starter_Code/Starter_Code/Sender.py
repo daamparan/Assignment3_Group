@@ -89,8 +89,7 @@ def send_gbn(sock, filename):
     global base
 
     #open and read the file
-    rBuf = open(filename, 'r')
-    rBuf = rBuf.read()
+    file = open(filename, 'r')
     
     seq = 0
     packets = [] #first collect the packets
@@ -104,7 +103,7 @@ def send_gbn(sock, filename):
     nextSend = 0 #next seq to be sent
     base = 0 #base packet
 
-    _thread.start_new_thread(receive, (sock)) #start the receiving thread
+    _thread.start_new_thread(receive_gbn, (sock)) #start the receiving thread
 
     while base < len(packets): #whi;e there is still more packets
         mutex.acquire() #lock the previous thread
